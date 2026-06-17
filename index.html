@@ -6,31 +6,93 @@
     <title>My Fitness Vault</title>
     <style>
         body {
-            font-family: sans-serif;
-            background-color: #121212;
-            color: #ffffff;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f4f8; 
+            color: #1a202c; 
             margin: 0;
             padding: 20px;
             text-align: center;
         }
         h1 {
-            color: #00ff88;
+            color: #2b6cb0; 
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
         }
+        p {
+            color: #4a5568; 
+            font-size: 15px;
+        }
+
+        /* --- STORIES SECTION --- */
+        .stories-wrapper {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 15px;
+            margin: 0 auto 25px auto;
+            max-width: 600px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: none; /* Hidden until a story is loaded */
+        }
+        .stories-title {
+            text-align: left;
+            font-size: 14px;
+            font-weight: bold;
+            color: #a0aec0;
+            margin-top: 0;
+            margin-bottom: 10px;
+            padding-left: 5px;
+        }
+        .stories-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding-bottom: 5px;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+        }
+        .stories-container::-webkit-scrollbar { display: none; }
+        
+        .story-circle {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            border: 3px solid #00ff88; /* Cool green ring around stories */
+            padding: 2px;
+            object-fit: cover; /* Keeps it a perfect circle */
+            cursor: pointer;
+            flex-shrink: 0;
+            scroll-snap-align: start;
+            transition: transform 0.2s;
+            background: #e2e8f0;
+        }
+        .story-circle:hover {
+            transform: scale(1.05);
+        }
+
+        /* --- POSTS GALLERY --- */
         .gallery {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 20px;
-            padding: 20px;
+            gap: 25px;
+            padding: 10px 0;
         }
         .media-card {
-            background: #1e1e1e;
-            border-radius: 8px;
+            background: #ffffff; 
+            border-radius: 16px; 
             overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); 
             max-width: 320px;
             width: 100%;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
+        .media-card:hover {
+            transform: translateY(-5px); 
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
         /* --- CAROUSEL STYLES --- */
         .carousel {
             display: flex;
@@ -38,17 +100,16 @@
             scroll-snap-type: x mandatory;
             scrollbar-width: none;
         }
-        .carousel::-webkit-scrollbar {
-            display: none;
-        }
+        .carousel::-webkit-scrollbar { display: none; }
         .carousel-item {
             flex: 0 0 100%;
             scroll-snap-align: start;
             display: flex;
             align-items: center;
-            background: #000;
+            background: #f8fafc; 
         }
-        /* --- MEDIA WRAPPER & DOWNLOAD BUTTONS --- */
+
+        /* --- MEDIA WRAPPER & BUTTONS --- */
         .media-wrapper {
             position: relative;
             width: 100%;
@@ -59,12 +120,10 @@
             display: block;
             max-height: 400px;
             object-fit: contain;
-            cursor: pointer; /* Makes it look clickable */
+            cursor: pointer;
             transition: opacity 0.2s;
         }
-        .carousel-item img:hover {
-            opacity: 0.85; /* Slight fade when hovering to show it is clickable */
-        }
+        .carousel-item img:hover { opacity: 0.85; }
         .carousel-item video {
             width: 100%;
             height: auto;
@@ -76,28 +135,28 @@
             position: absolute;
             bottom: 10px;
             right: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            color: #fff;
+            background: rgba(255, 255, 255, 0.9); 
+            color: #2b6cb0; 
             text-decoration: none;
             padding: 8px 12px;
-            border-radius: 5px;
+            border-radius: 8px;
             font-size: 14px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
             transition: 0.3s;
         }
-        .download-btn:hover {
-            background: #00ff88;
-            color: #000;
-        }
+        .download-btn:hover { background: #2b6cb0; color: #ffffff; }
         .media-title {
             padding: 15px 10px;
             font-size: 16px;
             font-weight: bold;
+            color: #2d3748;
             word-break: break-all;
-            background: #1e1e1e;
+            background: #ffffff;
+            border-top: 1px solid #edf2f7; 
         }
         .swipe-hint {
-            font-size: 11px;
-            color: #888;
+            font-size: 12px;
+            color: #a0aec0;
             margin-top: 5px;
             display: block;
             font-weight: normal;
@@ -105,65 +164,68 @@
 
         /* --- FULL SCREEN MODAL STYLES --- */
         .modal {
-            display: none; /* Hidden by default */
+            display: none; 
             position: fixed;
             z-index: 1000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.95);
+            background-color: rgba(15, 23, 42, 0.95); 
             align-items: center;
             justify-content: center;
             flex-direction: column;
         }
-        .modal img {
+        .modal img, .modal video {
             max-width: 95%;
-            max-height: 80vh; /* Keeps it from going off-screen vertically */
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            max-height: 80vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            display: none; /* Hidden until chosen */
         }
         .close-btn {
             position: absolute;
             top: 15px;
             right: 25px;
-            color: white;
+            color: #cbd5e1;
             font-size: 40px;
             font-weight: bold;
             cursor: pointer;
             transition: 0.2s;
         }
-        .close-btn:hover {
-            color: #00ff88;
-        }
+        .close-btn:hover { color: #ffffff; }
         .modal-download {
             margin-top: 20px;
-            background: #00ff88;
-            color: #000;
+            background: #2b6cb0; 
+            color: #ffffff;
             padding: 12px 24px;
             text-decoration: none;
             font-weight: bold;
             border-radius: 8px;
             font-size: 16px;
             transition: 0.2s;
+            box-shadow: 0 4px 15px rgba(43, 108, 176, 0.4);
         }
-        .modal-download:hover {
-            background: #fff;
-        }
+        .modal-download:hover { background: #1a365d; }
     </style>
 </head>
 <body>
 
     <h1>🏋️‍♂️ Fitness Media Gallery 🏋️‍♂️</h1>
-    <p>Tap any picture to view full screen!</p>
+    <p>Prefix files with <b>story-</b> to add them to your Stories!</p>
     
+    <div class="stories-wrapper" id="stories-wrapper">
+        <p class="stories-title">Stories</p>
+        <div class="stories-container" id="stories"></div>
+    </div>
+
     <div class="gallery" id="gallery"></div>
 
-    <!-- THIS IS THE INVISIBLE FULL-SCREEN POPUP -->
     <div id="fullscreen-modal" class="modal">
         <span class="close-btn" onclick="closeModal()">&times;</span>
         <img id="modal-img" src="" alt="Fullscreen view">
-        <a id="modal-download-btn" class="modal-download" href="" download target="_blank">⬇️ Download Image</a>
+        <video id="modal-vid" src="" controls></video>
+        <a id="modal-download-btn" class="modal-download" href="" download target="_blank">⬇️ Download Media</a>
     </div>
 
     <script>
@@ -173,22 +235,38 @@
 
         const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
 
-        // Functions to handle the full-screen modal
-        function openModal(imgSrc, fileName) {
-            document.getElementById('modal-img').src = imgSrc;
+        // Upgraded to handle videos in the popup!
+        function openModal(mediaSrc, fileName) {
+            const isVideo = fileName.match(/\.(mp4|webm|mov)$/i);
+            const imgEl = document.getElementById('modal-img');
+            const vidEl = document.getElementById('modal-vid');
+
+            if (isVideo) {
+                imgEl.style.display = 'none';
+                vidEl.src = mediaSrc;
+                vidEl.style.display = 'block';
+                vidEl.play(); // Auto-plays the video when clicked
+            } else {
+                vidEl.style.display = 'none';
+                vidEl.pause();
+                imgEl.src = mediaSrc;
+                imgEl.style.display = 'block';
+            }
+
             const modalDl = document.getElementById('modal-download-btn');
-            modalDl.href = imgSrc;
-            // The download attribute suggests the file name to the browser
+            modalDl.href = mediaSrc;
             modalDl.download = fileName; 
             document.getElementById('fullscreen-modal').style.display = 'flex';
         }
 
         function closeModal() {
             document.getElementById('fullscreen-modal').style.display = 'none';
-            document.getElementById('modal-img').src = ''; // clears image to save memory
+            document.getElementById('modal-img').src = ''; 
+            const vidEl = document.getElementById('modal-vid');
+            vidEl.pause();
+            vidEl.src = '';
         }
 
-        // Close modal if user clicks anywhere on the black background
         window.onclick = function(event) {
             const modal = document.getElementById('fullscreen-modal');
             if (event.target === modal) {
@@ -198,15 +276,51 @@
 
         async function loadMedia() {
             const gallery = document.getElementById('gallery');
+            const storiesContainer = document.getElementById('stories');
+            const storiesWrapper = document.getElementById('stories-wrapper');
+
             try {
                 const response = await fetch(apiUrl);
                 if (!response.ok) throw new Error('Failed to fetch folder');
                 const files = await response.json();
 
-                const groups = {};
+                const posts = [];
+                const stories = [];
+
+                // Sort files into Stories vs Posts
                 files.forEach(file => {
                     if (!file.name.includes('.')) return; 
+                    
+                    if (file.name.toLowerCase().startsWith('story-')) {
+                        stories.push(file);
+                    } else {
+                        posts.push(file);
+                    }
+                });
 
+                // 1. RENDER STORIES
+                if (stories.length > 0) {
+                    storiesWrapper.style.display = 'block'; // Unhide the stories section
+                    stories.forEach(file => {
+                        let mediaElement;
+                        if (file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+                            mediaElement = document.createElement('img');
+                        } else if (file.name.match(/\.(mp4|webm|mov)$/i)) {
+                            mediaElement = document.createElement('video');
+                        }
+                        
+                        if (mediaElement) {
+                            mediaElement.src = file.download_url;
+                            mediaElement.className = 'story-circle';
+                            mediaElement.onclick = () => openModal(file.download_url, file.name);
+                            storiesContainer.appendChild(mediaElement);
+                        }
+                    });
+                }
+
+                // 2. RENDER POSTS
+                const groups = {};
+                posts.forEach(file => {
                     let prefix = file.name;
                     if (file.name.includes('-')) {
                         prefix = file.name.split('-')[0];
@@ -214,9 +328,7 @@
                         prefix = file.name.split('.')[0]; 
                     }
 
-                    if (!groups[prefix]) {
-                        groups[prefix] = [];
-                    }
+                    if (!groups[prefix]) { groups[prefix] = []; }
                     groups[prefix].push(file);
                 });
 
@@ -233,7 +345,6 @@
                         const itemContainer = document.createElement('div');
                         itemContainer.className = 'carousel-item';
                         
-                        // Wrapper to hold media + download button
                         const wrapper = document.createElement('div');
                         wrapper.className = 'media-wrapper';
 
@@ -241,10 +352,8 @@
                             const img = document.createElement('img');
                             img.src = file.download_url;
                             img.loading = "lazy";
-                            // Open full screen when clicked
                             img.onclick = () => openModal(file.download_url, file.name);
                             
-                            // Small corner download button
                             const dlBtn = document.createElement('a');
                             dlBtn.href = file.download_url;
                             dlBtn.download = file.name;
