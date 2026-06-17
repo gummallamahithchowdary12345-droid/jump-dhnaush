@@ -36,24 +36,57 @@
             display: flex;
             overflow-x: auto;
             scroll-snap-type: x mandatory;
-            scrollbar-width: none; /* Hides scrollbar in Firefox */
+            scrollbar-width: none;
         }
         .carousel::-webkit-scrollbar {
-            display: none; /* Hides scrollbar in Chrome/Safari */
+            display: none;
         }
         .carousel-item {
-            flex: 0 0 100%; /* Makes each item take up the full card width */
-            scroll-snap-align: start; /* Makes it snap cleanly */
+            flex: 0 0 100%;
+            scroll-snap-align: start;
             display: flex;
             align-items: center;
             background: #000;
         }
-        .carousel-item img, .carousel-item video {
+        /* --- MEDIA WRAPPER & DOWNLOAD BUTTONS --- */
+        .media-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        .carousel-item img {
             width: 100%;
             height: auto;
             display: block;
-            max-height: 400px; /* Keeps everything roughly the same height */
+            max-height: 400px;
             object-fit: contain;
+            cursor: pointer; /* Makes it look clickable */
+            transition: opacity 0.2s;
+        }
+        .carousel-item img:hover {
+            opacity: 0.85; /* Slight fade when hovering to show it is clickable */
+        }
+        .carousel-item video {
+            width: 100%;
+            height: auto;
+            display: block;
+            max-height: 400px;
+            object-fit: contain;
+        }
+        .download-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+        .download-btn:hover {
+            background: #00ff88;
+            color: #000;
         }
         .media-title {
             padding: 15px 10px;
@@ -69,22 +102,99 @@
             display: block;
             font-weight: normal;
         }
+
+        /* --- FULL SCREEN MODAL STYLES --- */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.95);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .modal img {
+            max-width: 95%;
+            max-height: 80vh; /* Keeps it from going off-screen vertically */
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .close-btn:hover {
+            color: #00ff88;
+        }
+        .modal-download {
+            margin-top: 20px;
+            background: #00ff88;
+            color: #000;
+            padding: 12px 24px;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+        .modal-download:hover {
+            background: #fff;
+        }
     </style>
 </head>
 <body>
 
     <h1>🏋️‍♂️ Fitness Media Gallery 🏋️‍♂️</h1>
-    
+    <p>Tap any picture to view full screen!</p>
     
     <div class="gallery" id="gallery"></div>
 
+    <!-- THIS IS THE INVISIBLE FULL-SCREEN POPUP -->
+    <div id="fullscreen-modal" class="modal">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <img id="modal-img" src="" alt="Fullscreen view">
+        <a id="modal-download-btn" class="modal-download" href="" download target="_blank">⬇️ Download Image</a>
+    </div>
+
     <script>
-        // Your specific GitHub details
         const username = 'gummallamahithchowdary12345-droid'; 
         const repo = 'jump-dhnaush';           
         const folder = 'media';          
 
         const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
+
+        // Functions to handle the full-screen modal
+        function openModal(imgSrc, fileName) {
+            document.getElementById('modal-img').src = imgSrc;
+            const modalDl = document.getElementById('modal-download-btn');
+            modalDl.href = imgSrc;
+            // The download attribute suggests the file name to the browser
+            modalDl.download = fileName; 
+            document.getElementById('fullscreen-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('fullscreen-modal').style.display = 'none';
+            document.getElementById('modal-img').src = ''; // clears image to save memory
+        }
+
+        // Close modal if user clicks anywhere on the black background
+        window.onclick = function(event) {
+            const modal = document.getElementById('fullscreen-modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
 
         async function loadMedia() {
             const gallery = document.getElementById('gallery');
@@ -93,18 +203,14 @@
                 if (!response.ok) throw new Error('Failed to fetch folder');
                 const files = await response.json();
 
-                // 1. GROUP THE FILES
                 const groups = {};
                 files.forEach(file => {
-                    // Ignore invisible system files or standard folders
                     if (!file.name.includes('.')) return; 
 
                     let prefix = file.name;
-                    // If there is a dash (e.g., 2015-1.jpg), grab everything before the dash
                     if (file.name.includes('-')) {
                         prefix = file.name.split('-')[0];
                     } else {
-                        // Otherwise, just use the file name without the extension
                         prefix = file.name.split('.')[0]; 
                     }
 
@@ -114,9 +220,7 @@
                     groups[prefix].push(file);
                 });
 
-                // 2. BUILD THE CAROUSELS
                 for (const [groupName, items] of Object.entries(groups)) {
-                    // Sort items so -1 comes before -2
                     items.sort((a, b) => a.name.localeCompare(b.name));
 
                     const card = document.createElement('div');
@@ -128,25 +232,44 @@
                     items.forEach(file => {
                         const itemContainer = document.createElement('div');
                         itemContainer.className = 'carousel-item';
+                        
+                        // Wrapper to hold media + download button
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'media-wrapper';
 
                         if (file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
                             const img = document.createElement('img');
                             img.src = file.download_url;
                             img.loading = "lazy";
-                            itemContainer.appendChild(img);
+                            // Open full screen when clicked
+                            img.onclick = () => openModal(file.download_url, file.name);
+                            
+                            // Small corner download button
+                            const dlBtn = document.createElement('a');
+                            dlBtn.href = file.download_url;
+                            dlBtn.download = file.name;
+                            dlBtn.target = "_blank";
+                            dlBtn.className = 'download-btn';
+                            dlBtn.innerHTML = '⬇️';
+
+                            wrapper.appendChild(img);
+                            wrapper.appendChild(dlBtn);
+                            itemContainer.appendChild(wrapper);
+
                         } else if (file.name.match(/\.(mp4|webm|mov)$/i)) {
                             const video = document.createElement('video');
                             video.src = file.download_url;
                             video.controls = true;
                             video.preload = "metadata";
-                            itemContainer.appendChild(video);
+                            wrapper.appendChild(video);
+                            itemContainer.appendChild(wrapper);
                         }
+                        
                         carousel.appendChild(itemContainer);
                     });
 
                     card.appendChild(carousel);
 
-                    // Add title and a "Swipe" hint if there is more than 1 item
                     const titleDiv = document.createElement('div');
                     titleDiv.className = 'media-title';
                     titleDiv.innerHTML = groupName;
