@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness Vault</title>
+    <style>
+        body { font-family: sans-serif; background: #111; color: #fff; text-align: center; }
+        .gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px; }
+        .card { background: #222; border-radius: 10px; padding: 10px; width: 300px; }
+        img, video { width: 100%; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>My Fitness Vault</h1>
+    <div class="gallery" id="gallery"></div>
+
+    <script>
+        // CHANGE THESE TWO LINES:
+        const username = 'gummallamahithchowdary12345-droid'; // e.g., 'johndoe'
+        const repo = 'jump-dhnaush';          // e.g., 'fitness-website'
+        
+        const folder = 'fitness-media';
+        const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
+
+        fetch(apiUrl)
+            .then(res => res.json())
+            .then(files => {
+                const gallery = document.getElementById('gallery');
+                files.forEach(file => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+
+                    if (file.name.match(/\.(jpg|jpeg|png|gif)$/i)) {
+                        card.innerHTML = `<img src="${file.download_url}" loading="lazy">
+                                          <p>${file.name}</p>`;
+                        gallery.appendChild(card);
+                    } else if (file.name.match(/\.(mp4|webm)$/i)) {
+                        card.innerHTML = `<video src="${file.download_url}" controls preload="metadata"></video>
+                                          <p>${file.name}</p>`;
+                        gallery.appendChild(card);
+                    }
+                });
+            })
+            .catch(err => console.error("Error fetching files:", err));
+    </script>
+</body>
+</html>
