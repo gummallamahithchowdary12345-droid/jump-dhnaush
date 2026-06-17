@@ -3,47 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fitness Vault</title>
+    <title>My Fitness Vault</title>
     <style>
-        body { font-family: sans-serif; background: #111; color: #fff; text-align: center; }
-        .gallery { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px; }
-        .card { background: #222; border-radius: 10px; padding: 10px; width: 300px; }
-        img, video { width: 100%; border-radius: 5px; }
+        body {
+            font-family: sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #00ff88;
+        }
+        .gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+        .media-card {
+            background: #1e1e1e;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            max-width: 320px;
+            width: 100%;
+        }
+        /* --- CAROUSEL STYLES --- */
+        .carousel {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none; /* Hides scrollbar in Firefox */
+        }
+        .carousel::-webkit-scrollbar {
+            display: none; /* Hides scrollbar in Chrome/Safari */
+        }
+        .carousel-item {
+            flex: 0 0 100%; /* Makes each item take up the full card width */
+            scroll-snap-align: start; /* Makes it snap cleanly */
+            display: flex;
+            align-items: center;
+            background: #000;
+        }
+        .carousel-item img, .carousel-item video {
+            width: 100%;
+            height: auto;
+            display: block;
+            max-height: 400px; /* Keeps everything roughly the same height */
+            object-fit: contain;
+        }
+        .media-title {
+            padding: 15px 10px;
+            font-size: 16px;
+            font-weight: bold;
+            word-break: break-all;
+            background: #1e1e1e;
+        }
+        .swipe-hint {
+            font-size: 11px;
+            color: #888;
+            margin-top: 5px;
+            display: block;
+            font-weight: normal;
+        }
     </style>
 </head>
 <body>
 
-    <h1>My Fitness Vault</h1>
+    <h1>🏋️‍♂️ Fitness Media Gallery 🏋️‍♂️</h1>
+    
+    
     <div class="gallery" id="gallery"></div>
 
     <script>
-        // CHANGE THESE TWO LINES:
-        const username = 'gummallamahithchowdary12345-droid'; // e.g., 'johndoe'
-        const repo = 'jump-dhnaush';          // e.g., 'fitness-website'
-        
-        const folder = 'media';
+        // Your specific GitHub details
+        const username = 'gummallamahithchowdary12345-droid'; 
+        const repo = 'jump-dhnaush';           
+        const folder = 'media';          
+
         const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
 
-        fetch(apiUrl)
-            .then(res => res.json())
-            .then(files => {
-                const gallery = document.getElementById('gallery');
-                files.forEach(file => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
+        async function loadMedia() {
+            const gallery = document.getElementById('gallery');
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error('Failed to fetch folder');
+                const files = await response.json();
 
-                    if (file.name.match(/\.(jpg|jpeg|png|gif)$/i)) {
-                        card.innerHTML = `<img src="${file.download_url}" loading="lazy">
-                                          <p>${file.name}</p>`;
-                        gallery.appendChild(card);
-                    } else if (file.name.match(/\.(mp4|webm)$/i)) {
-                        card.innerHTML = `<video src="${file.download_url}" controls preload="metadata"></video>
-                                          <p>${file.name}</p>`;
-                        gallery.appendChild(card);
+                // 1. GROUP THE FILES
+                const groups = {};
+                files.forEach(file => {
+                    // Ignore invisible system files or standard folders
+                    if (!file.name.includes('.')) return; 
+
+                    let prefix = file.name;
+                    // If there is a dash (e.g., 2015-1.jpg), grab everything before the dash
+                    if (file.name.includes('-')) {
+                        prefix = file.name.split('-')[0];
+                    } else {
+                        // Otherwise, just use the file name without the extension
+                        prefix = file.name.split('.')[0]; 
                     }
+
+                    if (!groups[prefix]) {
+                        groups[prefix] = [];
+                    }
+                    groups[prefix].push(file);
                 });
-            })
-            .catch(err => console.error("Error fetching files:", err));
+
+                // 2. BUILD THE CAROUSELS
+                for (const [groupName, items] of Object.entries(groups)) {
+                    // Sort items so -1 comes before -2
+                    items.sort((a, b) => a.name.localeCompare(b.name));
+
+                    const card = document.createElement('div');
+                    card.className = 'media-card';
+
+                    const carousel = document.createElement('div');
+                    carousel.className = 'carousel';
+
+                    items.forEach(file => {
+                        const itemContainer = document.createElement('div');
+                        itemContainer.className = 'carousel-item';
+
+                        if (file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+                            const img = document.createElement('img');
+                            img.src = file.download_url;
+                            img.loading = "lazy";
+                            itemContainer.appendChild(img);
+                        } else if (file.name.match(/\.(mp4|webm|mov)$/i)) {
+                            const video = document.createElement('video');
+                            video.src = file.download_url;
+                            video.controls = true;
+                            video.preload = "metadata";
+                            itemContainer.appendChild(video);
+                        }
+                        carousel.appendChild(itemContainer);
+                    });
+
+                    card.appendChild(carousel);
+
+                    // Add title and a "Swipe" hint if there is more than 1 item
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'media-title';
+                    titleDiv.innerHTML = groupName;
+                    
+                    if (items.length > 1) {
+                        titleDiv.innerHTML += `<span class="swipe-hint">👉 Swipe for more (${items.length} items)</span>`;
+                    }
+                    
+                    card.appendChild(titleDiv);
+                    gallery.appendChild(card);
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                gallery.innerHTML = `<p style="color: red;">Error loading media.</p>`;
+            }
+        }
+
+        loadMedia();
     </script>
 </body>
 </html>
