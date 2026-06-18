@@ -26,16 +26,17 @@
             margin: 0;
             padding: 0;
             min-height: 100vh;
-            display: flex;
+            display: flex; /* This guarantees the side-by-side layout */
         }
 
-        /* --- LEFT SIDEBAR NAVIGATION --- */
+        /* --- STRICT LEFT SIDEBAR NAVIGATION --- */
         .sidebar {
-            width: 240px;
+            width: 250px;
+            min-width: 250px;
             background: var(--sidebar-bg);
             border-right: 1px solid var(--glass-border);
             height: 100vh;
-            position: fixed;
+            position: fixed; /* Locks it to the left side */
             top: 0;
             left: 0;
             display: flex;
@@ -51,7 +52,7 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             margin-bottom: 40px;
-            font-size: 20px;
+            font-size: 22px;
             text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
             text-align: center;
         }
@@ -70,7 +71,7 @@
             margin-bottom: 15px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .nav-btn:hover {
@@ -86,17 +87,17 @@
             box-shadow: 0 0 15px rgba(0, 255, 136, 0.1);
         }
 
-        /* --- MAIN CONTENT AREA --- */
+        /* --- MAIN CONTENT AREA (Pushed right to make room for sidebar) --- */
         .main-content {
-            margin-left: 240px; /* Offset for sidebar */
-            padding: 30px;
-            width: calc(100% - 240px);
+            margin-left: 250px; /* Exactly matches sidebar width */
+            padding: 40px;
+            width: calc(100% - 250px);
             box-sizing: border-box;
             min-height: 100vh;
         }
 
         .tab-content {
-            display: none; /* Hidden by default, JS controls this */
+            display: none; /* Hidden by default, JavaScript changes this to block */
             animation: fadeIn 0.4s ease-in-out;
         }
         
@@ -106,23 +107,23 @@
         }
 
         .section-header {
-            text-align: center;
-            font-size: 24px;
+            text-align: left;
+            font-size: 28px;
             font-weight: 800;
             color: var(--text-main);
             text-transform: uppercase;
             letter-spacing: 2px;
             margin-bottom: 30px;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--glass-border);
         }
 
-        /* --- STORIES GRID (Upgraded for its own page) --- */
+        /* --- STORIES GRID --- */
         .stories-container {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
-            gap: 25px;
-            padding: 20px;
+            justify-content: flex-start;
+            gap: 30px;
         }
         
         .story-item {
@@ -144,8 +145,8 @@
         .story-item:hover .story-ring { transform: scale(1.08); }
         
         .story-circle {
-            width: 90px; /* Made bigger since they have their own tab now */
-            height: 90px;
+            width: 100px; 
+            height: 100px;
             border-radius: 50%;
             border: 4px solid var(--bg-color); 
             object-fit: cover;
@@ -157,21 +158,19 @@
             font-size: 14px;
             font-weight: 600;
             color: var(--text-main);
-            max-width: 90px;
+            max-width: 100px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             text-align: center;
         }
 
-        /* --- POSTS GALLERY (Shared for X & Main) --- */
+        /* --- CAROUSELS & GALLERIES --- */
         .gallery {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
+            justify-content: flex-start;
             gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
         }
         
         .media-card {
@@ -254,42 +253,30 @@
         .story-progress-container { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 5px; z-index: 10001; }
         .story-progress-bar { height: 3px; background: rgba(255,255,255,0.3); flex-grow: 1; border-radius: 3px; overflow: hidden; }
         .story-progress-fill { height: 100%; background: #fff; width: 0%; transition: width 0.3s; }
-
-        /* --- MOBILE RESPONSIVE (Turns sidebar into bottom app nav) --- */
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar {
-                width: 100%; height: 70px; top: auto; bottom: 0; flex-direction: row; 
-                justify-content: space-around; padding: 10px; border-right: none; 
-                border-top: 1px solid var(--glass-border);
-            }
-            .brand { display: none; }
-            .nav-btn { margin-bottom: 0; padding: 10px; font-size: 14px; flex-direction: column; gap: 2px; }
-            .main-content { margin-left: 0; margin-bottom: 70px; width: 100%; padding: 15px; }
-        }
     </style>
 </head>
 <body>
 
-    <!-- LEFT SIDEBAR / BOTTOM APP BAR -->
+    <!-- STRICT LEFT SIDEBAR NAVIGATION -->
     <nav class="sidebar">
         <div class="brand">Vault</div>
-        <!-- By default, Main is active -->
+        
+        <!-- Tab Buttons -->
         <button class="nav-btn active" onclick="switchTab('tab-main', this)">
-            📷 Insta / Main
+            📷 Main
         </button>
         <button class="nav-btn" onclick="switchTab('tab-x', this)">
-            🐦 𝕏 Log
+            🐦 X
         </button>
         <button class="nav-btn" onclick="switchTab('tab-stories', this)">
             ⭕ Stories
         </button>
     </nav>
 
-    <!-- CONTENT AREA -->
+    <!-- CONTENT AREA (Right Side) -->
     <main class="main-content">
         
-        <!-- INSTA MAIN TAB -->
+        <!-- MAIN TAB -->
         <div id="tab-main" class="tab-content" style="display: block;">
             <h2 class="section-header">Main Vault</h2>
             <div class="gallery" id="gallery"></div>
@@ -297,19 +284,19 @@
 
         <!-- X TAB -->
         <div id="tab-x" class="tab-content">
-            <h2 class="section-header">𝕏 Log</h2>
+            <h2 class="section-header">X Log</h2>
             <div class="gallery" id="x-gallery"></div>
         </div>
 
         <!-- STORIES TAB -->
         <div id="tab-stories" class="tab-content">
-            <h2 class="section-header">Story Highlights</h2>
+            <h2 class="section-header">Stories</h2>
             <div class="stories-container" id="stories"></div>
         </div>
 
     </main>
 
-    <!-- FULL-SCREEN VIEWER (Shared by everything) -->
+    <!-- FULL-SCREEN VIEWER -->
     <div id="fullscreen-modal" class="modal">
         <div class="story-progress-container" id="modal-progress"></div>
         <span class="close-btn" onclick="closeModal()">&times;</span>
@@ -336,15 +323,15 @@
 
         // --- TAB SWITCHING LOGIC ---
         function switchTab(tabId, clickedBtn) {
-            // Hide all tabs
+            // 1. Hide all sections
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.style.display = 'none';
             });
-            // Remove 'active' class from all buttons
+            // 2. Remove active state from all buttons
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            // Show requested tab & highlight button
+            // 3. Show the target section and light up the button
             document.getElementById(tabId).style.display = 'block';
             clickedBtn.classList.add('active');
         }
@@ -595,7 +582,7 @@
                     });
                 }
 
-                // RENDER X & MAIN POSTS
+                // RENDER X & MAIN POSTS (Carousels exactly as before)
                 renderGallerySection(xGroups, 'x-gallery');
                 renderGallerySection(postsGroups, 'gallery');
 
