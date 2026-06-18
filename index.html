@@ -5,70 +5,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Fitness Vault</title>
     <style>
+        /* --- GLOBAL STYLES & PREMIUM DARK THEME --- */
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-primary: #00ff88;
+            --accent-secondary: #00b8ff;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f4f8; 
-            color: #1a202c; 
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at top right, rgba(0, 255, 136, 0.05), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(0, 184, 255, 0.05), transparent 40%);
+            color: var(--text-main);
             margin: 0;
             padding: 20px;
             text-align: center;
+            min-height: 100vh;
         }
+        
         h1 {
-            color: #2b6cb0; 
+            color: #ffffff;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             margin-bottom: 5px;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
         }
-        p {
-            color: #4a5568; 
-            font-size: 15px;
-        }
+        
+        p { color: var(--text-muted); font-size: 15px; }
 
         /* --- STORIES SECTION --- */
         .stories-wrapper {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 15px;
-            margin: 0 auto 25px auto;
-            max-width: 600px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            display: none; /* Hidden until a story is loaded */
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+            margin: 0 auto 35px auto;
+            max-width: 650px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            display: none; 
         }
+        
         .stories-title {
             text-align: left;
             font-size: 14px;
             font-weight: bold;
-            color: #a0aec0;
-            margin-top: 0;
-            margin-bottom: 10px;
-            padding-left: 5px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 15px 5px;
         }
+        
         .stories-container {
             display: flex;
             overflow-x: auto;
-            gap: 15px;
-            padding-bottom: 5px;
+            gap: 18px;
+            padding-bottom: 10px;
             scroll-snap-type: x mandatory;
-            scrollbar-width: none;
+            scrollbar-width: none; 
         }
-        .stories-container::-webkit-scrollbar { display: none; }
+        .stories-container::-webkit-scrollbar { display: none; } 
+        
+        .story-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            scroll-snap-align: start;
+        }
+        
+        .story-ring {
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 50%;
+            padding: 3px;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.2);
+        }
+        
+        .story-item:hover .story-ring { transform: scale(1.08); }
         
         .story-circle {
-            width: 75px;
-            height: 75px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
-            border: 3px solid #00ff88; /* Cool green ring around stories */
-            padding: 2px;
-            object-fit: cover; /* Keeps it a perfect circle */
-            cursor: pointer;
-            flex-shrink: 0;
-            scroll-snap-align: start;
-            transition: transform 0.2s;
-            background: #e2e8f0;
+            border: 3px solid var(--bg-color); 
+            object-fit: cover;
+            background: #1e293b;
+            display: block;
         }
-        .story-circle:hover {
-            transform: scale(1.05);
+        
+        .story-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-main);
+            max-width: 76px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         /* --- POSTS GALLERY --- */
@@ -76,204 +117,402 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 25px;
+            gap: 30px;
             padding: 10px 0;
         }
+        
         .media-card {
-            background: #ffffff; 
-            border-radius: 16px; 
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px; 
             overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); 
             max-width: 320px;
             width: 100%;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
+        
         .media-card:hover {
-            transform: translateY(-5px); 
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+            transform: translateY(-8px); 
+            box-shadow: 0 20px 40px rgba(0, 255, 136, 0.15);
         }
 
         /* --- CAROUSEL STYLES --- */
+        .carousel-wrapper {
+            position: relative;
+            width: 100%;
+            background: #000;
+        }
+        
         .carousel {
             display: flex;
             overflow-x: auto;
             scroll-snap-type: x mandatory;
             scrollbar-width: none;
+            scroll-behavior: smooth;
         }
         .carousel::-webkit-scrollbar { display: none; }
+        
         .carousel-item {
             flex: 0 0 100%;
             scroll-snap-align: start;
             display: flex;
             align-items: center;
-            background: #f8fafc; 
-        }
-
-        /* --- MEDIA WRAPPER & BUTTONS --- */
-        .media-wrapper {
+            justify-content: center;
             position: relative;
-            width: 100%;
+            height: 400px; 
         }
-        .carousel-item img {
-            width: 100%;
-            height: auto;
-            display: block;
-            max-height: 400px;
-            object-fit: contain;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .carousel-item img:hover { opacity: 0.85; }
-        .carousel-item video {
-            width: 100%;
-            height: auto;
-            display: block;
-            max-height: 400px;
-            object-fit: contain;
-        }
-        .download-btn {
+        
+        /* FEATURE 2: Desktop Navigation Arrows */
+        .slide-btn {
             position: absolute;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(255, 255, 255, 0.9); 
-            color: #2b6cb0; 
-            text-decoration: none;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            transition: 0.3s;
-        }
-        .download-btn:hover { background: #2b6cb0; color: #ffffff; }
-        .media-title {
-            padding: 15px 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            color: var(--text-main);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
             font-size: 16px;
-            font-weight: bold;
-            color: #2d3748;
-            word-break: break-all;
-            background: #ffffff;
-            border-top: 1px solid #edf2f7; 
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
         }
-        .swipe-hint {
-            font-size: 12px;
-            color: #a0aec0;
-            margin-top: 5px;
-            display: block;
-            font-weight: normal;
+        .slide-btn:hover { background: var(--accent-primary); color: #000; border-color: transparent; }
+        .slide-btn.left { left: 8px; }
+        .slide-btn.right { right: 8px; }
+
+        /* --- MEDIA & ACTION BUTTONS --- */
+        .carousel-item img, .carousel-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; 
+        }
+        
+        /* FEATURE 3: Distinct Action Buttons (Expand & Download) */
+        .action-buttons {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            display: flex;
+            gap: 10px;
+            z-index: 5;
+        }
+        
+        .btn-icon {
+            background: rgba(15, 23, 42, 0.7); 
+            backdrop-filter: blur(8px);
+            color: var(--text-main); 
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+        .btn-icon:hover { background: var(--accent-primary); color: #000; transform: scale(1.1); }
+
+        .media-title {
+            padding: 18px 15px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+            word-break: break-all;
+            background: rgba(30, 41, 59, 0.4);
+            border-top: 1px solid var(--glass-border); 
+            text-align: left;
         }
 
-        /* --- FULL SCREEN MODAL STYLES --- */
+        /* --- FULL SCREEN MODAL --- */
         .modal {
             display: none; 
             position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(15, 23, 42, 0.95); 
+            z-index: 9999;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background-color: rgba(0, 0, 0, 0.95); 
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             align-items: center;
             justify-content: center;
             flex-direction: column;
         }
-        .modal img, .modal video {
-            max-width: 95%;
-            max-height: 80vh;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            display: none; /* Hidden until chosen */
+        
+        .modal-content-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100vw;
+            height: 85vh;
+            touch-action: pan-y; 
         }
+        
+        .modal img, .modal video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: none; 
+        }
+        
+        .modal-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 10001;
+            transition: 0.2s;
+        }
+        .modal-nav:hover { background: var(--accent-primary); color: black; }
+        #modal-prev { left: 20px; }
+        #modal-next { right: 20px; }
+        
         .close-btn {
             position: absolute;
-            top: 15px;
-            right: 25px;
-            color: #cbd5e1;
+            top: 20px;
+            right: 30px;
+            color: rgba(255,255,255,0.6);
             font-size: 40px;
-            font-weight: bold;
+            font-weight: 300;
             cursor: pointer;
+            z-index: 10002;
             transition: 0.2s;
         }
-        .close-btn:hover { color: #ffffff; }
+        .close-btn:hover { color: #fff; transform: rotate(90deg); }
+
         .modal-download {
-            margin-top: 20px;
-            background: #2b6cb0; 
-            color: #ffffff;
-            padding: 12px 24px;
-            text-decoration: none;
-            font-weight: bold;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: 0.2s;
-            box-shadow: 0 4px 15px rgba(43, 108, 176, 0.4);
+            position: absolute;
+            bottom: 30px;
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            color: #000;
+            border: none;
+            padding: 14px 28px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-radius: 30px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.4);
+            z-index: 10001;
         }
-        .modal-download:hover { background: #1a365d; }
+        .modal-download:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0, 255, 136, 0.6); }
+        
+        /* Story Progress Bar */
+        .story-progress-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+            z-index: 10001;
+        }
+        .story-progress-bar {
+            height: 3px;
+            background: rgba(255,255,255,0.3);
+            flex-grow: 1;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .story-progress-fill {
+            height: 100%;
+            background: #fff;
+            width: 0%;
+            transition: width 0.3s;
+        }
     </style>
 </head>
 <body>
 
-    <h1>🏋️‍♂️ Fitness Media Gallery 🏋️‍♂️</h1>
-    <p>Prefix files with <b>story-</b> to add them to your Stories!</p>
+    <h1>Fitness Vault</h1>
+    <p>Prefix files with <b>s-</b> to add them to your Stories!</p>
     
     <div class="stories-wrapper" id="stories-wrapper">
-        <p class="stories-title">Stories</p>
+        <p class="stories-title">Recent Stories</p>
         <div class="stories-container" id="stories"></div>
     </div>
 
     <div class="gallery" id="gallery"></div>
 
     <div id="fullscreen-modal" class="modal">
+        <div class="story-progress-container" id="modal-progress"></div>
         <span class="close-btn" onclick="closeModal()">&times;</span>
-        <img id="modal-img" src="" alt="Fullscreen view">
-        <video id="modal-vid" src="" controls></video>
-        <a id="modal-download-btn" class="modal-download" href="" download target="_blank">⬇️ Download Media</a>
+        
+        <button class="modal-nav" id="modal-prev" onclick="changeModalSlide(-1)">❮</button>
+        
+        <div class="modal-content-wrapper" id="swipe-zone">
+            <img id="modal-img" src="" alt="Fullscreen view">
+            <video id="modal-vid" src="" controls playsinline></video>
+        </div>
+        
+        <button class="modal-nav" id="modal-next" onclick="changeModalSlide(1)">❯</button>
+        
+        <button id="modal-download-btn" class="modal-download">⬇ Download</button>
     </div>
 
     <script>
         const username = 'gummallamahithchowdary12345-droid'; 
-        const repo = 'jump-dhnaush';           
+        const repo = 'jump-dhnaush';            
         const folder = 'media';          
-
         const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${folder}`;
 
-        // Upgraded to handle videos in the popup!
-        function openModal(mediaSrc, fileName) {
-            const isVideo = fileName.match(/\.(mp4|webm|mov)$/i);
+        let currentViewerItems = [];
+        let currentViewerIndex = 0;
+
+        // --- FEATURE 5: Instant Force-Download (No New Tabs) ---
+        async function forceDownload(url, fileName, event) {
+            if(event) event.stopPropagation(); 
+            
+            const btn = event ? event.currentTarget : document.getElementById('modal-download-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳'; 
+            btn.style.opacity = '0.7';
+
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = blobUrl;
+                a.download = fileName; // Forces exact download name
+                document.body.appendChild(a);
+                a.click();
+                
+                window.URL.revokeObjectURL(blobUrl);
+                document.body.removeChild(a);
+            } catch (error) {
+                console.error("Force-download failed, falling back to new tab:", error);
+                window.open(url, '_blank');
+            }
+            btn.innerHTML = originalText; 
+            btn.style.opacity = '1';
+        }
+
+        // --- OPEN FULL SCREEN MODAL ---
+        function openModal(items, index) {
+            currentViewerItems = items;
+            currentViewerIndex = index;
+            document.getElementById('fullscreen-modal').style.display = 'flex';
+            document.body.style.overflow = 'hidden'; 
+            updateModalView();
+            renderModalProgress();
+        }
+
+        // --- UPDATE VIEW AND PROGRESS ---
+        function updateModalView() {
+            const file = currentViewerItems[currentViewerIndex];
             const imgEl = document.getElementById('modal-img');
             const vidEl = document.getElementById('modal-vid');
+            
+            const isVideo = file.name.match(/\.(mp4|webm|mov)$/i);
 
             if (isVideo) {
                 imgEl.style.display = 'none';
-                vidEl.src = mediaSrc;
+                vidEl.src = file.download_url;
                 vidEl.style.display = 'block';
-                vidEl.play(); // Auto-plays the video when clicked
+                vidEl.play();
             } else {
                 vidEl.style.display = 'none';
                 vidEl.pause();
-                imgEl.src = mediaSrc;
+                imgEl.src = file.download_url;
                 imgEl.style.display = 'block';
             }
 
-            const modalDl = document.getElementById('modal-download-btn');
-            modalDl.href = mediaSrc;
-            modalDl.download = fileName; 
-            document.getElementById('fullscreen-modal').style.display = 'flex';
+            const dlBtn = document.getElementById('modal-download-btn');
+            dlBtn.onclick = (e) => forceDownload(file.download_url, file.name, e);
+
+            const showNav = currentViewerItems.length > 1;
+            document.getElementById('modal-prev').style.display = showNav ? 'block' : 'none';
+            document.getElementById('modal-next').style.display = showNav ? 'block' : 'none';
+            
+            updateProgressFills();
+        }
+
+        function renderModalProgress() {
+            const container = document.getElementById('modal-progress');
+            container.innerHTML = '';
+            if (currentViewerItems.length <= 1) return;
+            
+            for (let i = 0; i < currentViewerItems.length; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'story-progress-bar';
+                bar.innerHTML = `<div class="story-progress-fill" id="prog-fill-${i}"></div>`;
+                container.appendChild(bar);
+            }
+            updateProgressFills();
+        }
+
+        function updateProgressFills() {
+            if (currentViewerItems.length <= 1) return;
+            for (let i = 0; i < currentViewerItems.length; i++) {
+                const fill = document.getElementById(`prog-fill-${i}`);
+                if (fill) {
+                    if (i < currentViewerIndex) fill.style.width = '100%';
+                    else if (i === currentViewerIndex) fill.style.width = '50%'; 
+                    else fill.style.width = '0%';
+                }
+            }
+        }
+
+        function changeModalSlide(direction) {
+            currentViewerIndex += direction;
+            if (currentViewerIndex >= currentViewerItems.length) currentViewerIndex = 0;
+            if (currentViewerIndex < 0) currentViewerIndex = currentViewerItems.length - 1;
+            updateModalView();
         }
 
         function closeModal() {
             document.getElementById('fullscreen-modal').style.display = 'none';
-            document.getElementById('modal-img').src = ''; 
-            const vidEl = document.getElementById('modal-vid');
-            vidEl.pause();
-            vidEl.src = '';
+            document.body.style.overflow = 'auto'; 
+            document.getElementById('modal-vid').pause();
+            currentViewerItems = [];
         }
 
-        window.onclick = function(event) {
-            const modal = document.getElementById('fullscreen-modal');
-            if (event.target === modal) {
-                closeModal();
-            }
+        let touchstartX = 0;
+        let touchendX = 0;
+        const swipeZone = document.getElementById('swipe-zone');
+
+        swipeZone.addEventListener('touchstart', e => {
+            touchstartX = e.changedTouches[0].screenX;
+        });
+
+        swipeZone.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const threshold = 50; 
+            if (touchendX < touchstartX - threshold) changeModalSlide(1); 
+            if (touchendX > touchstartX + threshold) changeModalSlide(-1); 
         }
 
+        function scrollCarousel(btn, direction) {
+            const carousel = btn.parentElement.querySelector('.carousel');
+            carousel.scrollBy({ left: direction * 320, behavior: 'smooth' });
+        }
+
+        // --- FETCH AND RENDER MEDIA ---
         async function loadMedia() {
             const gallery = document.getElementById('gallery');
             const storiesContainer = document.getElementById('stories');
@@ -284,120 +523,7 @@
                 if (!response.ok) throw new Error('Failed to fetch folder');
                 const files = await response.json();
 
-                const posts = [];
-                const stories = [];
+                const postsGroups = {};
+                const storiesGroups = {};
 
-                // Sort files into Stories vs Posts
-                files.forEach(file => {
-                    if (!file.name.includes('.')) return; 
-                    
-                    if (file.name.toLowerCase().startsWith('story-')) {
-                        stories.push(file);
-                    } else {
-                        posts.push(file);
-                    }
-                });
-
-                // 1. RENDER STORIES
-                if (stories.length > 0) {
-                    storiesWrapper.style.display = 'block'; // Unhide the stories section
-                    stories.forEach(file => {
-                        let mediaElement;
-                        if (file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
-                            mediaElement = document.createElement('img');
-                        } else if (file.name.match(/\.(mp4|webm|mov)$/i)) {
-                            mediaElement = document.createElement('video');
-                        }
-                        
-                        if (mediaElement) {
-                            mediaElement.src = file.download_url;
-                            mediaElement.className = 'story-circle';
-                            mediaElement.onclick = () => openModal(file.download_url, file.name);
-                            storiesContainer.appendChild(mediaElement);
-                        }
-                    });
-                }
-
-                // 2. RENDER POSTS
-                const groups = {};
-                posts.forEach(file => {
-                    let prefix = file.name;
-                    if (file.name.includes('-')) {
-                        prefix = file.name.split('-')[0];
-                    } else {
-                        prefix = file.name.split('.')[0]; 
-                    }
-
-                    if (!groups[prefix]) { groups[prefix] = []; }
-                    groups[prefix].push(file);
-                });
-
-                for (const [groupName, items] of Object.entries(groups)) {
-                    items.sort((a, b) => a.name.localeCompare(b.name));
-
-                    const card = document.createElement('div');
-                    card.className = 'media-card';
-
-                    const carousel = document.createElement('div');
-                    carousel.className = 'carousel';
-
-                    items.forEach(file => {
-                        const itemContainer = document.createElement('div');
-                        itemContainer.className = 'carousel-item';
-                        
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'media-wrapper';
-
-                        if (file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
-                            const img = document.createElement('img');
-                            img.src = file.download_url;
-                            img.loading = "lazy";
-                            img.onclick = () => openModal(file.download_url, file.name);
-                            
-                            const dlBtn = document.createElement('a');
-                            dlBtn.href = file.download_url;
-                            dlBtn.download = file.name;
-                            dlBtn.target = "_blank";
-                            dlBtn.className = 'download-btn';
-                            dlBtn.innerHTML = '⬇️';
-
-                            wrapper.appendChild(img);
-                            wrapper.appendChild(dlBtn);
-                            itemContainer.appendChild(wrapper);
-
-                        } else if (file.name.match(/\.(mp4|webm|mov)$/i)) {
-                            const video = document.createElement('video');
-                            video.src = file.download_url;
-                            video.controls = true;
-                            video.preload = "metadata";
-                            wrapper.appendChild(video);
-                            itemContainer.appendChild(wrapper);
-                        }
-                        
-                        carousel.appendChild(itemContainer);
-                    });
-
-                    card.appendChild(carousel);
-
-                    const titleDiv = document.createElement('div');
-                    titleDiv.className = 'media-title';
-                    titleDiv.innerHTML = groupName;
-                    
-                    if (items.length > 1) {
-                        titleDiv.innerHTML += `<span class="swipe-hint">👉 Swipe for more (${items.length} items)</span>`;
-                    }
-                    
-                    card.appendChild(titleDiv);
-                    gallery.appendChild(card);
-                }
-
-            } catch (error) {
-                console.error('Error:', error);
-                gallery.innerHTML = `<p style="color: red;">Error loading media.</p>`;
-            }
-        }
-
-        loadMedia();
-    </script>
-</body>
-</html>
+                files.forEach(file
