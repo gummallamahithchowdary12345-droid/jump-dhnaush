@@ -526,4 +526,120 @@
                 const postsGroups = {};
                 const storiesGroups = {};
 
-                files.forEach(file
+                files.forEach(file => {
+                    if (!file.name.includes('.')) return; 
+                    
+                    let nameLC = file.name.toLowerCase();
+                    
+                    // --- BULLETPROOF GROUPING LOGIC ---
+                    if (nameLC.startsWith('s-')) {
+                        let cleanName = file.name.substring(2); 
+                        // Splits by hyphen, underscore, or dot. 
+                        let groupName = cleanName.split(/[-_.]/)[0];
+                        
+                        if (!storiesGroups[groupName]) storiesGroups[groupName] = [];
+                        storiesGroups[groupName].push(file);
+                    } else {
+                        // Regular Post Grouping
+                        let groupName = file.name.split(/[-_.]/)[0];
+                        if (!postsGroups[groupName]) postsGroups[groupName] = [];
+                        postsGroups[groupName].push(file);
+                    }
+                });
+
+                // RENDER STORIES
+                const storyKeys = Object.keys(storiesGroups).sort((a, b) => b.localeCompare(a)); 
+                if (storyKeys.length > 0) {
+                    storiesWrapper.style.display = 'block'; 
+                    
+                    storyKeys.forEach(groupName => {
+                        const items = storiesGroups[groupName];
+                        items.sort((a, b) => a.name.localeCompare(b.name)); 
+                        
+                        const firstItem = items[0];
+                        const storyWrap = document.createElement('div');
+                        storyWrap.className = 'story-item';
+                        storyWrap.onclick = () => openModal(items, 0);
+
+                        let mediaElement;
+                        if (firstItem.name.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+                            mediaElement = `<img src="${firstItem.download_url}" class="story-circle">`;
+                        } else {
+                            mediaElement = `<video src="${firstItem.download_url}#t=0.1" class="story-circle" preload="metadata"></video>`;
+                        }
+
+                        storyWrap.innerHTML = `
+                            <div class="story-ring">${mediaElement}</div>
+                            <span class="story-label">${groupName}</span>
+                        `;
+                        storiesContainer.appendChild(storyWrap);
+                    });
+                }
+
+                // --- FEATURE 1: Reverse Chronological Sorting (Decreasing Order) ---
+                const postKeys = Object.keys(postsGroups).sort((a, b) => b.localeCompare(a)); 
+
+                postKeys.forEach(groupName => {
+                    const items = postsGroups[groupName];
+                    items.sort((a, b) => a.name.localeCompare(b.name)); 
+
+                    const card = document.createElement('div');
+                    card.className = 'media-card';
+
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'carousel-wrapper';
+
+                    const carousel = document.createElement('div');
+                    carousel.className = 'carousel';
+
+                    // Feature 2 Logic: Only add arrows if multiple files exist
+                    if (items.length > 1) {
+                        wrapper.innerHTML += `
+                            <button class="slide-btn left" onclick="scrollCarousel(this, -1)">❮</button>
+                            <button class="slide-btn right" onclick="scrollCarousel(this, 1)">❯</button>
+                        `;
+                    }
+
+                    items.forEach((file, index) => {
+                        const itemContainer = document.createElement('div');
+                        itemContainer.className = 'carousel-item';
+
+                        let mediaHtml = '';
+                        if (file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+                            mediaHtml = `<img src="${file.download_url}" loading="lazy">`;
+                        } else if (file.name.match(/\.(mp4|webm|mov)$/i)) {
+                            mediaHtml = `<video src="${file.download_url}" controls preload="metadata"></video>`;
+                        }
+
+                        // --- FEATURE 3 & 4: Distinct Buttons + Grouped JSON Passing ---
+                        itemContainer.innerHTML = `
+                            ${mediaHtml}
+                            <div class="action-buttons">
+                                <button class="btn-icon" onclick="openModal(${JSON.stringify(items).replace(/"/g, '&quot;')}, ${index})" title="Expand">🔍</button>
+                                <button class="btn-icon" onclick="forceDownload('${file.download_url}', '${file.name}', event)" title="Download">⬇️</button>
+                            </div>
+                        `;
+                        carousel.appendChild(itemContainer);
+                    });
+
+                    wrapper.appendChild(carousel);
+                    card.appendChild(wrapper);
+
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'media-title';
+                    titleDiv.innerHTML = groupName;
+                    
+                    card.appendChild(titleDiv);
+                    gallery.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Error:', error);
+                gallery.innerHTML = `<p style="color: #ff3366;">Error loading media vault. Please check console (F12).</p>`;
+            }
+        }
+
+        loadMedia();
+    </script>
+</body>
+</html>
