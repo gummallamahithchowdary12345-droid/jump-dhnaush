@@ -37,7 +37,22 @@
             text-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
         }
         
-        p { color: var(--text-muted); font-size: 15px; }
+        p { color: var(--text-muted); font-size: 15px; margin-bottom: 30px; }
+
+        .section-header {
+            text-align: left;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 15px 5px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 8px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
 
         /* --- STORIES SECTION --- */
         .stories-wrapper {
@@ -51,16 +66,6 @@
             max-width: 650px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
             display: none; 
-        }
-        
-        .stories-title {
-            text-align: left;
-            font-size: 14px;
-            font-weight: bold;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 0 0 15px 5px;
         }
         
         .stories-container {
@@ -112,13 +117,15 @@
             white-space: nowrap;
         }
 
-        /* --- POSTS GALLERY --- */
+        /* --- POSTS GALLERY (Shared for X & Main) --- */
         .gallery {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 30px;
-            padding: 10px 0;
+            padding: 10px 0 40px 0;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         
         .media-card {
@@ -165,7 +172,7 @@
             height: 400px; 
         }
         
-        /* FEATURE 2: Desktop Navigation Arrows */
+        /* Desktop Navigation Arrows */
         .slide-btn {
             position: absolute;
             top: 50%;
@@ -196,7 +203,7 @@
             object-fit: cover; 
         }
         
-        /* FEATURE 3: Distinct Action Buttons (Expand & Download) */
+        /* Distinct Action Buttons (Expand & Download) */
         .action-buttons {
             position: absolute;
             bottom: 12px;
@@ -343,14 +350,22 @@
 <body>
 
     <h1>Fitness Vault</h1>
-    <p>Prefix files with <b>s-</b> to add them to your Stories!</p>
+    <p>Prefix files with <b>s-</b> for Stories or <b>x-</b> for X(Twitter) Posts!</p>
     
     <div class="stories-wrapper" id="stories-wrapper">
-        <p class="stories-title">Recent Stories</p>
+        <h2 class="section-header" style="border:none; text-align:center; margin:0 0 15px 0;">Recent Stories</h2>
         <div class="stories-container" id="stories"></div>
     </div>
 
-    <div class="gallery" id="gallery"></div>
+    <div id="x-wrapper" style="display: none;">
+        <h2 class="section-header">𝕏 Log (Twitter)</h2>
+        <div class="gallery" id="x-gallery"></div>
+    </div>
+
+    <div id="posts-wrapper" style="display: none;">
+        <h2 class="section-header">Main Vault</h2>
+        <div class="gallery" id="gallery"></div>
+    </div>
 
     <div id="fullscreen-modal" class="modal">
         <div class="story-progress-container" id="modal-progress"></div>
@@ -377,7 +392,7 @@
         let currentViewerItems = [];
         let currentViewerIndex = 0;
 
-        // --- FEATURE 5: Instant Force-Download (No New Tabs) ---
+        // --- INSTANT FORCE-DOWNLOAD ---
         async function forceDownload(url, fileName, event) {
             if(event) event.stopPropagation(); 
             
@@ -394,21 +409,21 @@
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = blobUrl;
-                a.download = fileName; // Forces exact download name
+                a.download = fileName; 
                 document.body.appendChild(a);
                 a.click();
                 
                 window.URL.revokeObjectURL(blobUrl);
                 document.body.removeChild(a);
             } catch (error) {
-                console.error("Force-download failed, falling back to new tab:", error);
+                console.error("Force-download failed:", error);
                 window.open(url, '_blank');
             }
             btn.innerHTML = originalText; 
             btn.style.opacity = '1';
         }
 
-        // --- OPEN FULL SCREEN MODAL ---
+        // --- FULL SCREEN MODAL LOGIC ---
         function openModal(items, index) {
             currentViewerItems = items;
             currentViewerIndex = index;
@@ -418,7 +433,6 @@
             renderModalProgress();
         }
 
-        // --- UPDATE VIEW AND PROGRESS ---
         function updateModalView() {
             const file = currentViewerItems[currentViewerIndex];
             const imgEl = document.getElementById('modal-img');
@@ -512,45 +526,112 @@
             carousel.scrollBy({ left: direction * 320, behavior: 'smooth' });
         }
 
+        // --- RENDER A GALLERY SECTION (Reusable Logic for X and Main Vault) ---
+        function renderGallerySection(groupsObj, galleryElementId, wrapperId) {
+            const keys = Object.keys(groupsObj).sort((a, b) => b.localeCompare(a)); // Reverse chron
+            if (keys.length === 0) return;
+
+            document.getElementById(wrapperId).style.display = 'block';
+            const gallery = document.getElementById(galleryElementId);
+
+            keys.forEach(groupName => {
+                const items = groupsObj[groupName];
+                items.sort((a, b) => a.name.localeCompare(b.name)); 
+
+                const card = document.createElement('div');
+                card.className = 'media-card';
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'carousel-wrapper';
+
+                const carousel = document.createElement('div');
+                carousel.className = 'carousel';
+
+                if (items.length > 1) {
+                    wrapper.innerHTML += `
+                        <button class="slide-btn left" onclick="scrollCarousel(this, -1)">❮</button>
+                        <button class="slide-btn right" onclick="scrollCarousel(this, 1)">❯</button>
+                    `;
+                }
+
+                items.forEach((file, index) => {
+                    const itemContainer = document.createElement('div');
+                    itemContainer.className = 'carousel-item';
+
+                    let mediaHtml = '';
+                    if (file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
+                        mediaHtml = `<img src="${file.download_url}" loading="lazy">`;
+                    } else if (file.name.match(/\.(mp4|webm|mov)$/i)) {
+                        mediaHtml = `<video src="${file.download_url}" controls preload="metadata"></video>`;
+                    }
+
+                    itemContainer.innerHTML = `
+                        ${mediaHtml}
+                        <div class="action-buttons">
+                            <button class="btn-icon" onclick="openModal(${JSON.stringify(items).replace(/"/g, '&quot;')}, ${index})" title="Expand">🔍</button>
+                            <button class="btn-icon" onclick="forceDownload('${file.download_url}', '${file.name}', event)" title="Download">⬇️</button>
+                        </div>
+                    `;
+                    carousel.appendChild(itemContainer);
+                });
+
+                wrapper.appendChild(carousel);
+                card.appendChild(wrapper);
+
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'media-title';
+                titleDiv.innerHTML = groupName;
+                
+                card.appendChild(titleDiv);
+                gallery.appendChild(card);
+            });
+        }
+
+
         // --- FETCH AND RENDER MEDIA ---
         async function loadMedia() {
-            const gallery = document.getElementById('gallery');
-            const storiesContainer = document.getElementById('stories');
-            const storiesWrapper = document.getElementById('stories-wrapper');
-
             try {
                 const response = await fetch(apiUrl);
                 if (!response.ok) throw new Error('Failed to fetch folder');
                 const files = await response.json();
 
-                const postsGroups = {};
                 const storiesGroups = {};
+                const xGroups = {};
+                const postsGroups = {};
 
+                // 1. SORT FILES INTO THE 3 CATEGORIES
                 files.forEach(file => {
                     if (!file.name.includes('.')) return; 
                     
                     let nameLC = file.name.toLowerCase();
                     
-                    // --- BULLETPROOF GROUPING LOGIC ---
                     if (nameLC.startsWith('s-')) {
+                        // Stories
                         let cleanName = file.name.substring(2); 
-                        // Splits by hyphen, underscore, or dot. 
                         let groupName = cleanName.split(/[-_.]/)[0];
-                        
                         if (!storiesGroups[groupName]) storiesGroups[groupName] = [];
                         storiesGroups[groupName].push(file);
+                        
+                    } else if (nameLC.startsWith('x-')) {
+                        // X (Twitter) Posts
+                        let cleanName = file.name.substring(2); 
+                        let groupName = cleanName.split(/[-_.]/)[0];
+                        if (!xGroups[groupName]) xGroups[groupName] = [];
+                        xGroups[groupName].push(file);
+                        
                     } else {
-                        // Regular Post Grouping
+                        // Regular Main Posts
                         let groupName = file.name.split(/[-_.]/)[0];
                         if (!postsGroups[groupName]) postsGroups[groupName] = [];
                         postsGroups[groupName].push(file);
                     }
                 });
 
-                // RENDER STORIES
+                // 2. RENDER STORIES
                 const storyKeys = Object.keys(storiesGroups).sort((a, b) => b.localeCompare(a)); 
                 if (storyKeys.length > 0) {
-                    storiesWrapper.style.display = 'block'; 
+                    document.getElementById('stories-wrapper').style.display = 'block'; 
+                    const storiesContainer = document.getElementById('stories');
                     
                     storyKeys.forEach(groupName => {
                         const items = storiesGroups[groupName];
@@ -576,66 +657,16 @@
                     });
                 }
 
-                // --- FEATURE 1: Reverse Chronological Sorting (Decreasing Order) ---
-                const postKeys = Object.keys(postsGroups).sort((a, b) => b.localeCompare(a)); 
+                // 3. RENDER X POSTS
+                renderGallerySection(xGroups, 'x-gallery', 'x-wrapper');
 
-                postKeys.forEach(groupName => {
-                    const items = postsGroups[groupName];
-                    items.sort((a, b) => a.name.localeCompare(b.name)); 
-
-                    const card = document.createElement('div');
-                    card.className = 'media-card';
-
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'carousel-wrapper';
-
-                    const carousel = document.createElement('div');
-                    carousel.className = 'carousel';
-
-                    // Feature 2 Logic: Only add arrows if multiple files exist
-                    if (items.length > 1) {
-                        wrapper.innerHTML += `
-                            <button class="slide-btn left" onclick="scrollCarousel(this, -1)">❮</button>
-                            <button class="slide-btn right" onclick="scrollCarousel(this, 1)">❯</button>
-                        `;
-                    }
-
-                    items.forEach((file, index) => {
-                        const itemContainer = document.createElement('div');
-                        itemContainer.className = 'carousel-item';
-
-                        let mediaHtml = '';
-                        if (file.name.match(/\.(jpeg|jpg|gif|png|webp)$/i)) {
-                            mediaHtml = `<img src="${file.download_url}" loading="lazy">`;
-                        } else if (file.name.match(/\.(mp4|webm|mov)$/i)) {
-                            mediaHtml = `<video src="${file.download_url}" controls preload="metadata"></video>`;
-                        }
-
-                        // --- FEATURE 3 & 4: Distinct Buttons + Grouped JSON Passing ---
-                        itemContainer.innerHTML = `
-                            ${mediaHtml}
-                            <div class="action-buttons">
-                                <button class="btn-icon" onclick="openModal(${JSON.stringify(items).replace(/"/g, '&quot;')}, ${index})" title="Expand">🔍</button>
-                                <button class="btn-icon" onclick="forceDownload('${file.download_url}', '${file.name}', event)" title="Download">⬇️</button>
-                            </div>
-                        `;
-                        carousel.appendChild(itemContainer);
-                    });
-
-                    wrapper.appendChild(carousel);
-                    card.appendChild(wrapper);
-
-                    const titleDiv = document.createElement('div');
-                    titleDiv.className = 'media-title';
-                    titleDiv.innerHTML = groupName;
-                    
-                    card.appendChild(titleDiv);
-                    gallery.appendChild(card);
-                });
+                // 4. RENDER MAIN POSTS
+                renderGallerySection(postsGroups, 'gallery', 'posts-wrapper');
 
             } catch (error) {
                 console.error('Error:', error);
-                gallery.innerHTML = `<p style="color: #ff3366;">Error loading media vault. Please check console (F12).</p>`;
+                document.getElementById('gallery').innerHTML = `<p style="color: #ff3366;">Error loading media vault. Check Console (F12).</p>`;
+                document.getElementById('posts-wrapper').style.display = 'block';
             }
         }
 
